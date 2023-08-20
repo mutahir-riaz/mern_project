@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="./index.js"></script>       
+</head>
+<body>
+    <hr style="background-color: aliceblue; margin-top: 70px; width: 80%;">
+    <div class="quiz" style="height: 410px;">
+    <h1 style="color: aliceblue; padding-left: 450px; font-family: Arial, Helvetica, sans-serif; font-weight: 400; padding-top: 20px; font-size: 30px; margin-bottom: 40px;" id="question">Which of the following is the <br>
+      best programming language?</h1>
+    
+    <!-- <button  type="button spacial" class="button"  style="width: 400px; height: 50px;"><span ><img src="ellipse-sharp.svg" width="20px" style=" color:rgb(43, 70, 226) ; border-radius: 12px; "></span> 
+    <span class="button_text"> python</span> </button> <br>
+    <button  type="button spacial" class="button"  style="width: 400px; height: 50px;"><span ><img src="ellipse-outline.svg" width="20px" style=" border-radius: 12px; "></span> 
+        <span class="button_text"> python</span> </button><br>
+        <button  type="button spacial" class="button"  style="width: 400px; height: 50px;"><span ><img src="ellipse-outline.svg" width="20px" style=" border-radius: 12px; "></span> 
+            <span class="button_text"> python</span> </button><br>
+            <button  type="button spacial" class="button"  style="width: 400px; height: 50px;"><span ><img src="ellipse-outline.svg" width="20px" style=" border-radius: 12px; "></span> 
+                <span class="button_text"> python</span> </button> -->
+
+                <div class="radio-input-wrapper">
+                    <label class="label">
+                        <input value="value-2" name="value-radio" id="value-2" class="radio-input option" type="radio">
+                        <div class="radio-design"></div>
+                        <div class="label-text">Python</div>
+                    </label>
+                    <label class="label">
+                        <input value="value-3" name="value-radio" id="value-3" class="radio-input option" type="radio">
+                        <div class="radio-design"></div>
+                        <div class="label-text">Java</div>
+                    </label>
+                    <label class="label">
+                        <input value="value-4" name="value-radio" id="value-4" class="radio-input option" type="radio">
+                        <div class="radio-design"></div>
+                        <div class="label-text">JavaScript</div>
+                    </label>
+                    <label class="label">
+                        <input value="value-5" name="value-radio" id="value-5" class="radio-input option" type="radio">
+                        <div class="radio-design"></div>
+                        <div class="label-text">Ruby</div>
+                    </label>
+                </div> 
+                  <p class="resultMessage"></p> 
+    <button id="nextButton">Next Question</button>
+                            
+    <hr style="background-color: aliceblue; margin-top: 100px; width: 80%;">
+    <p class="score"></p>
+    <input type="file" id="csvFileInput">
+    <script>
+         const optionLabels = document.querySelectorAll('.label');
+         function parseQuestionLine(line) {
+  const [question, answer] = line.split(',');
+  return { question, answer: answer.trim() };
+}
+
+        document.getElementById('csvFileInput').addEventListener('change', handleFile);
+        document.getElementById('nextButton').addEventListener('click', displayNextQuestion);
+
+        let questionDataArray = [];
+        let currentQuestionIndex = 0;
+        let currentOptions = [];
+        let score = 0;
+        let questionOrder = [];
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    const lines = content.split('\n');
+                    questionDataArray = lines.map(parseQuestionLine);
+                    questionOrder = shuffleArray([...Array(questionDataArray.length).keys()]);
+                    displayQuestion();
+                };
+
+                reader.readAsText(file);
+            }
+        }
+        function clearRadioSelections() {
+    const radioInputs = document.querySelectorAll('.radio-input');
+    radioInputs.forEach(radioInput => {
+        radioInput.checked = false;
+    });
+}
+
+        const questionElement = document.getElementById('question');
+        const optionButtons = document.querySelectorAll('.option');
+        const resultMessage = document.querySelector('.resultMessage');
+
+
+        function displayQuestion() {
+            clearRadioSelections();
+        if (currentQuestionIndex < questionOrder.length) {
+            const currentQuestion = questionDataArray[questionOrder[currentQuestionIndex]];
+            questionElement.textContent = currentQuestion.question;
+
+            currentOptions = generateOptions(currentQuestion.answer);
+            optionLabels.forEach((label, index) => {
+                const radioInput = label.querySelector('.radio-input');
+                const labelText = label.querySelector('.label-text');
+                radioInput.value = currentOptions[index];
+                labelText.textContent = currentOptions[index];
+                label.addEventListener('click', () => checkAnswer(label, currentQuestion.answer));
+            });
+
+            resultMessage.textContent = '';
+        } else {
+            questionElement.textContent = 'Quiz completed';
+            optionLabels.forEach(label => {
+                label.style.display = 'none';
+            });
+            resultMessage.textContent = `Quiz score: ${score} out of ${questionOrder.length}`;
+        }
+    }
+    questionOrder = [];
+for (let i = 0; i < questionDataArray.length; i++) {
+    questionOrder.push(i);
+}
+questionOrder = shuffleArray(questionOrder);
+        function generateOptions(correctAnswer) {
+            const options = [correctAnswer];
+            while (options.length < 4) {
+                const randomQuestion = questionDataArray[Math.floor(Math.random() * questionDataArray.length)];
+                const randomAnswer = randomQuestion.answer;
+                if (!options.includes(randomAnswer)) {
+                    options.push(randomAnswer);
+                }
+            }
+            return shuffleArray(options);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function checkAnswer(selectedLabel, correctAnswer) {
+        const selectedAnswer = selectedLabel.querySelector('.label-text').textContent;
+        if (selectedAnswer === correctAnswer) {
+            resultMessage.textContent = 'Correct!';
+            resultMessage.style.color = 'green';
+            score++;
+        } else {
+            resultMessage.textContent = 'Wrong answer.';
+            resultMessage.style.color = 'red';
+        }
+        setTimeout(() => {
+            resultMessage.textContent = '';
+            currentQuestionIndex++;
+            displayQuestion();
+        }, 1000);
+    }
+
+        function displayNextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+    </script>
+    <!-- <h1 style="color: aliceblue; padding-left: 450px; font-family: Arial, Helvetica, sans-serif; font-weight: 400; padding-top: 10px; font-size: 18px; ">select the correct answers</h1> -->
+</body>
+</html>
